@@ -3,8 +3,10 @@
 from crewai import Agent, Crew, Task, Process
 from crewai.project import CrewBase, agent, task, crew, before_kickoff, after_kickoff
 from crewai.agents.agent_builder.base_agent import BaseAgent
+from crewai.llm import LLM
 from typing import List, Dict, Any
 import os
+import yaml
 # Fix import path
 try:
     from src.agentic_api.tools.social_media_tools import WebSearchTool, SocialMediaScraperTool, GeminiVisionAnalyzerTool, GeminiTextAnalyzerTool, ScoreCalculatorTool, InstagramAccountCrawlerTool, DatasetToCSVTool
@@ -21,8 +23,30 @@ class SocialMediaCrew:
 
     # Paths to YAML configuration files with absolute paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    agents_config = os.path.join(base_dir, 'config/social_media_agents.yaml')
-    tasks_config = os.path.join(base_dir, 'config/social_media_tasks.yaml')
+    
+    def __init__(self, use_gpt35_fallback=False):
+        """Initialize the crew with optional model selection."""
+        self.use_gpt35_fallback = use_gpt35_fallback
+        
+        # Load agent and task configurations
+        with open(os.path.join(self.base_dir, 'config/social_media_agents.yaml'), 'r') as f:
+            self.agents_config = yaml.safe_load(f)
+        with open(os.path.join(self.base_dir, 'config/social_media_tasks.yaml'), 'r') as f:
+            self.tasks_config = yaml.safe_load(f)
+            
+        # Initialize LLMs with optimized settings
+        openai_model = "openai/gpt-3.5-turbo" if self.use_gpt35_fallback else "openai/gpt-4o"
+        print(f"Using OpenAI model: {openai_model}")
+        
+        # Use OpenAI model for both agents
+        self.openai_llm = LLM(
+            model=openai_model,
+            temperature=0.5,  # Lower temperature for more focused responses
+            streaming=True,   # Enable streaming to reduce latency and token usage
+            max_tokens=1024   # Limit token generation to reduce usage
+        )
+        # Use the same OpenAI LLM for both agents
+        self.gemini_llm = self.openai_llm
 
     @before_kickoff
     def prepare_inputs(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -93,7 +117,7 @@ class SocialMediaCrew:
             role=web_crawler_config['role'],
             goal=web_crawler_config['goal'],
             backstory=web_crawler_config['backstory'],
-            llm=web_crawler_config['llm'],
+            llm=self.openai_llm,  # Use the initialized OpenAI LLM
             verbose=True,
             tools=tools
         )
@@ -116,7 +140,7 @@ class SocialMediaCrew:
             role=trend_analyst_config['role'],
             goal=trend_analyst_config['goal'],
             backstory=trend_analyst_config['backstory'],
-            llm=trend_analyst_config['llm'],
+            llm=self.gemini_llm,  # Use the initialized Gemini LLM (which is actually OpenAI)
             verbose=True,
             tools=tools
         )

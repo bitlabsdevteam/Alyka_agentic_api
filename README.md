@@ -1,6 +1,6 @@
 # Agentic API
 
-A collection of CrewAI-based multi-agent systems for various tasks.
+A collection of CrewAI-based multi-agent systems for various tasks, accessible via API endpoints.
 
 ## Installation
 
@@ -11,6 +11,84 @@ A collection of CrewAI-based multi-agent systems for various tasks.
    - macOS/Linux: `source venv/bin/activate`
 4. Install dependencies: `pip install -e .`
 5. Copy `.env.example` to `.env` and add your API keys
+
+## API Server
+
+The project includes a FastAPI server that exposes the agent crews as API endpoints.
+
+### Starting the API Server
+
+```bash
+python server.py
+```
+
+By default, the server runs on port 8000. You can change this by setting the `API_PORT` environment variable in your `.env` file.
+
+### API Endpoints
+
+#### Research Crew
+
+```
+POST /api/research
+```
+
+Request body:
+```json
+{
+  "topic": "Quantum Computing"
+}
+```
+
+Response:
+```json
+{
+  "result": "Comprehensive research report on Quantum Computing..."
+}
+```
+
+#### Social Media Analysis Crew
+
+```
+POST /api/social-media-analysis
+```
+
+Request body:
+```json
+{
+  "hashtags": ["tech", "ai"],
+  "min_items_per_hashtag": 25,
+  "platforms": ["Instagram"],
+  "geo_focus": ["North America", "EU"],
+  "use_gpt35_fallback": false,
+  "instagram_account_url": "https://www.instagram.com/kentooyamazaki/",
+  "instagram_max_images": 5
+}
+```
+
+Response:
+```json
+{
+  "result": "Detailed social media trend analysis..."
+}
+```
+
+#### Simplified Social Media Analysis
+
+```
+GET /api/simplified-social-media-analysis?hashtags=ai,tech&min_items=3&use_gpt35_fallback=false
+```
+
+Query parameters:
+- `hashtags`: Comma-separated list of hashtags to analyze (default: "ai")
+- `min_items`: Minimum items to collect per hashtag (default: 3)
+- `use_gpt35_fallback`: Use GPT-3.5-Turbo instead of GPT-4o (default: false)
+
+Response:
+```json
+{
+  "result": "Simplified social media trend analysis..."
+}
+```
 
 ## Available Crews
 
