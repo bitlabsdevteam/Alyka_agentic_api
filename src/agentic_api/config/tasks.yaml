@@ -1,0 +1,27 @@
+# src/agentic_api/config/tasks.yaml
+
+research_task:
+  description: >
+    Research the latest developments and key insights about {topic}.
+    Focus on gathering comprehensive and accurate information from
+    reliable sources. Organize your findings in a clear and structured
+    manner to facilitate analysis.
+  expected_output: >
+    A detailed research document containing the latest developments,
+    key insights, and relevant information about {topic}, organized
+    in a clear and structured manner.
+  agent: researcher
+
+analysis_task:
+  description: >
+    Analyze the research findings about {topic} and create a
+    comprehensive, well-structured report. Identify patterns,
+    extract meaningful insights, and present them in a clear
+    and engaging way.
+  expected_output: >
+    A comprehensive report on {topic} that presents insights
+    in a clear and engaging way, with well-structured sections,
+    key findings highlighted, and actionable recommendations.
+  agent: analyst
+  context:
+    - research_task

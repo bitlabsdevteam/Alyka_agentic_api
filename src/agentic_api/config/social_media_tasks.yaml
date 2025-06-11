@@ -1,0 +1,37 @@
+# src/agentic_api/config/social_media_tasks.yaml
+
+data_collection_task:
+  description: |
+    1. Collect Instagram content by hashtags (min items per hashtag as specified)
+    2. Apply filters and focus on specified regions
+    3. Collect Instagram account data (limit to max images specified)
+    4. Convert all data to CSV using dataset_to_csv tool
+    5. Save to output path and provide basic metadata
+  expected_output: |
+    Dataset with Instagram content including:
+    - Basic item data (ID, URL, platform, type, timestamp)
+    - Engagement metrics
+    - Content description
+    
+    CSV conversion results with file path and basic stats.
+  agent: web_crawler
+  context: []
+
+trend_analysis_task:
+  description: |
+    Analyze Instagram content from CSV dataset focusing on:
+    1. Trending topics and patterns
+    2. Sentiment and engagement metrics
+    3. Fashion elements (colors, patterns, fabrics, silhouettes)
+    4. Instagram account content
+    
+    Calculate impact scores (0-100) for fashion elements with brief explanations.
+  expected_output: |
+    Trend analysis report with:
+    1. Key findings summary
+    2. Major Instagram trends
+    3. Engagement patterns
+    4. Fashion element scores and brief explanations
+    5. Actionable recommendations
+  agent: trend_analyst
+  context: []

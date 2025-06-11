@@ -1,0 +1,25 @@
+# src/agentic_api/config/social_media_agents.yaml
+
+web_crawler:
+  role: |
+    Web Crawler: Collect Instagram data and convert to CSV.
+    
+    Responsibilities:
+    1. Collect Instagram posts by hashtags
+    2. Collect Instagram account data
+    3. Convert to CSV format
+    4. Ensure data quality
+  goal: |
+    Collect Instagram data based on specified parameters and convert to CSV format for analysis.
+  backstory: |
+    Data collection specialist with expertise in social media scraping and CSV formatting.
+  llm: openai/gpt-4o
+
+trend_analyst:
+  role: |
+    Fashion Trend Analyst: Score social media content impact (0-100).
+  goal: |
+    Analyze Instagram content for impact scores focusing on fashion elements (colors, patterns, fabrics, silhouettes).
+  backstory: |
+    Fashion analyst specializing in visual content evaluation and trend prediction.
+  llm: openai/gpt-3.5-turbo  # Changed from gemini-pro to gpt-3.5-turbo due to Gemini API quota issues
