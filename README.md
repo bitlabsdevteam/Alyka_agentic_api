@@ -138,28 +138,67 @@ SERPER_API_KEY=your_serper_api_key_here
 API_PORT=8000
 ```
 
+## Development Tools
+
+### Using the Makefile
+
+This project includes a Makefile to simplify common development tasks:
+
+```bash
+# Show available commands
+make help
+
+# Setup virtual environment and install dependencies
+make setup
+
+# Run the API server locally
+make run
+
+# Run the simple test
+make test
+
+# Clean up generated files
+make clean
+
+# Run linting checks
+make lint
+
+# Format code using black
+make format
+```
+
 ## Docker Usage
 
-### Starting the API Server
+### Using Makefile for Docker Operations
+
+```bash
+# Build the Docker image
+make docker-build
+
+# Run the application in Docker
+make docker-run
+
+# Stop Docker containers
+make docker-stop
+
+# View Docker container logs
+make docker-logs
+```
+
+### Manual Docker Commands
 
 ```bash
 # Build and start the containers
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
-```
+docker compose logs -f
 
-### Stopping the API Server
+# Stop the containers
+docker compose down
 
-```bash
-docker-compose down
-```
-
-### Rebuilding the Docker Image
-
-```bash
-docker-compose build
+# Rebuild the Docker image
+docker compose build
 ```
 
 ## Required API Keys
