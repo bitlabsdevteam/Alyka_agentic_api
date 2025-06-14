@@ -11,6 +11,12 @@ fastapi>=0.104.0
 uvicorn>=0.23.0
 pydantic>=2.5.0
 
+# Authentication dependencies
+boto3>=1.28.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
 # Optional dependencies
 requests>=2.31.0
 tqdm>=4.67.0

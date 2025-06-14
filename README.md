@@ -136,6 +136,19 @@ SERPER_API_KEY=your_serper_api_key_here
 
 # API Server Configuration
 API_PORT=8000
+
+# AWS Cognito Configuration (see COGNITO_SETUP.md for details)
+AWS_REGION=us-east-1
+COGNITO_USER_POOL_ID=your_user_pool_id_here
+COGNITO_APP_CLIENT_ID=your_app_client_id_here
+COGNITO_DOMAIN=your_cognito_domain_here
+COGNITO_CALLBACK_URL=http://localhost:8000/auth/callback
+COGNITO_LOGOUT_URL=http://localhost:8000/
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_here
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## Development Tools
@@ -166,6 +179,28 @@ make lint
 # Format code using black
 make format
 ```
+
+## Authentication
+
+The API now includes authentication using AWS Cognito. This provides secure user management and authentication for all API endpoints.
+
+### Setting Up AWS Cognito
+
+Refer to the [Cognito Setup Guide](COGNITO_SETUP.md) for detailed instructions on how to set up AWS Cognito for this application.
+
+### Authentication Flow
+
+1. Users are redirected to the login page if not authenticated
+2. Login is handled through AWS Cognito's hosted UI
+3. After successful authentication, users are redirected back to the application with an access token
+4. All API endpoints require authentication
+
+### Authentication Endpoints
+
+- `/auth/login` - Redirects to Cognito login page
+- `/auth/callback` - Handles the callback from Cognito after successful authentication
+- `/auth/logout` - Logs out the user and clears the session
+- `/auth/me` - Returns information about the currently authenticated user
 
 ## Docker Usage
 

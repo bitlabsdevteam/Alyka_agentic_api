@@ -3,7 +3,11 @@
 import os
 import json
 from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Query
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, Depends, Request, Response, status
+from fastapi.responses import RedirectResponse, JSONResponse, HTMLResponse, FileResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -11,8 +15,24 @@ from dotenv import load_dotenv
 from .crew import ResearchCrew
 from .social_media_crew import SocialMediaCrew
 
+# Import authentication modules
+from .auth import (
+    get_current_active_user, 
+    get_cognito_login_url, 
+    get_cognito_logout_url,
+    exchange_code_for_tokens,
+    create_access_token,
+    User,
+    Token
+)
+from .middleware import get_auth_middleware
+
 # Load environment variables
 load_dotenv()
+
+# Get the directory of the current file
+CURRENT_DIR = Path(__file__).parent
+STATIC_DIR = CURRENT_DIR / "static"
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -20,6 +40,12 @@ app = FastAPI(
     description="API for running AI agent crews for research and social media analysis",
     version="0.1.0"
 )
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Add authentication middleware
+app.add_middleware(get_auth_middleware())
 
 # Define request and response models
 class ResearchRequest(BaseModel):
@@ -42,11 +68,71 @@ class SocialMediaResponse(BaseModel):
 
 # Define API endpoints
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the Agentic API for CrewAI"}
+async def root(request: Request):
+    # Check if user is authenticated by looking for the access_token cookie
+    access_token = request.cookies.get("access_token")
+    
+    if access_token and access_token.startswith("Bearer "):
+        # User is authenticated, return welcome message
+        return {"message": "Welcome to the Agentic API for CrewAI", "authenticated": True}
+    else:
+        # User is not authenticated, serve the login page
+        return FileResponse(STATIC_DIR / "login.html")
+
+# Authentication endpoints
+@app.get("/auth/login")
+async def login():
+    """Redirect to Cognito hosted UI for login"""
+    return RedirectResponse(url=get_cognito_login_url())
+
+@app.get("/auth/callback")
+async def callback(code: str, request: Request, response: Response):
+    """Handle the callback from Cognito after successful authentication"""
+    try:
+        # Exchange the authorization code for tokens
+        tokens = await exchange_code_for_tokens(code)
+        
+        # Create our own JWT token
+        access_token, expires_at = create_access_token(
+            data={"sub": "user123"}  # In a real app, this would be the user ID from Cognito
+        )
+        
+        # Set the token in a cookie
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {access_token}",
+            httponly=True,
+            max_age=1800,  # 30 minutes
+            expires=1800,
+            path="/",
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax"
+        )
+        
+        # Redirect to the home page
+        return RedirectResponse(url="/")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authentication failed: {str(e)}"
+        )
+
+@app.get("/auth/logout")
+async def logout(response: Response):
+    """Log out the user"""
+    # Clear the token cookie
+    response.delete_cookie(key="access_token", path="/")
+    
+    # Redirect to Cognito logout
+    return RedirectResponse(url=get_cognito_logout_url())
+
+@app.get("/auth/me", response_model=User)
+async def get_user(current_user: User = Depends(get_current_active_user)):
+    """Get the current user's information"""
+    return current_user
 
 @app.post("/api/research", response_model=ResearchResponse)
-async def run_research(request: ResearchRequest, background_tasks: BackgroundTasks):
+async def run_research(request: ResearchRequest, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_active_user)):
     """Run a research crew on a specific topic"""
     try:
         # Create and run the crew
@@ -59,7 +145,7 @@ async def run_research(request: ResearchRequest, background_tasks: BackgroundTas
         raise HTTPException(status_code=500, detail=f"Error running research crew: {str(e)}")
 
 @app.post("/api/social-media-analysis", response_model=SocialMediaResponse)
-async def run_social_media_analysis(request: SocialMediaRequest, background_tasks: BackgroundTasks):
+async def run_social_media_analysis(request: SocialMediaRequest, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_active_user)):
     """Run a social media trend analysis crew"""
     try:
         # Create inputs dictionary
@@ -93,7 +179,8 @@ async def run_social_media_analysis(request: SocialMediaRequest, background_task
 async def run_simplified_social_media_analysis(
     hashtags: str = Query("ai", description="Comma-separated list of hashtags to analyze"),
     min_items: int = Query(3, description="Minimum items to collect per hashtag"),
-    use_gpt35_fallback: bool = Query(False, description="Use GPT-3.5-Turbo instead of GPT-4o")
+    use_gpt35_fallback: bool = Query(False, description="Use GPT-3.5-Turbo instead of GPT-4o"),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Run a simplified social media trend analysis"""
     try:

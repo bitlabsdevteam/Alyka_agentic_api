@@ -49,6 +49,10 @@ install:
 	@echo "${GREEN}Installing dependencies...${NC}"
 	${PIP} install -r requirements.txt
 
+# Install authentication dependencies
+install-auth:
+	${PIP} install boto3 python-jose[cryptography] passlib[bcrypt] python-multipart
+
 # Run the API server
 run:
 	@echo "${GREEN}Starting API server on port ${API_PORT}...${NC}"
